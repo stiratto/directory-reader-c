@@ -23,7 +23,7 @@ int exploreDirectories(const char *dirStr) {
   // if dir == null, something is wrong with the directory
   if (dir == NULL) {
     printf("Couldn't read directory %s, maybe doesn't exists?\n", dirStr);
-    return 1;
+    return 0;
   }
 
   struct dirent *dp;
@@ -34,20 +34,15 @@ int exploreDirectories(const char *dirStr) {
     // if the current directory is a dir and not a file or smth else
     if (dp->d_type == DT_DIR) {
 
-      printf("%d\n", dp->d_type);
-      // if the directory name is not a dot (is not the current dir)
-      // and is not a .. (the father dir)
-      //
-      // bash ls -A would give smth like this:
-      // . .. dir1/ dir2/ dir3//
+      // $ ls -A would give smth like this:
+      // . .. dir1/ dir2/ dir3/ file1.sh file2.sh
       //
       if (strcmp(dp->d_name, ".") && strcmp(dp->d_name, "..") != 0) {
 
-        char buffer[256];
+        char buffer[1024];
         // format the new directory into a string, buffer now has the
         // formatted string
         int j = snprintf(buffer, sizeof(buffer), "%s/%s", dirStr, dp->d_name);
-        char *token = strtok(buffer, "\n");
         printf("DIRECTORIOOOOO %s\n", buffer);
 
         // explore the current directory to see if we find a
@@ -59,13 +54,14 @@ int exploreDirectories(const char *dirStr) {
       printf("%s/%s\n", dirStr, dp->d_name);
     }
   }
+  closedir(dir);
   return 0;
 }
 
 int checkFormat(char path[]) {
   regex_t regex;
   // check if path given is a real directory
-  const char *pattern = "^/[a-zA-Z0-9._/-]+/?";
+  const char *pattern = "^/[a-zA-Z0-9._/-]+$";
 
   int reti = regcomp(&regex, pattern, REG_EXTENDED);
 
@@ -82,7 +78,7 @@ int checkFormat(char path[]) {
   if (!reti) {
     return 0;
   } else if (reti == REG_NOMATCH) {
-    printf("Wrong format, correct format: /home/$USER/Music/ (example))\n");
+    printf("Wrong format, correct format: /home/$USER/Music (example))\n");
     return 1;
   } else {
     printf("Error.\n");
@@ -102,5 +98,6 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  exploreDirectories(argv[1]);
   return 0;
 }
