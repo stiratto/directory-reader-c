@@ -1,1 +1,1 @@
-My first C program :P
+My first program in C. It was interesting.
